@@ -15,6 +15,8 @@ import torch
 import numpy as np
 import torch.nn.functional
 import torch.nn as nn
+import hydra
+from omegaconf import OmegaConf
 import os
 import argparse
 torch.backends.cudnn.benchmark = True
@@ -159,7 +161,7 @@ def run_visualization(output_dict, output_recon, target, input_a, input_b, out_p
 def apply_GAN_criterion(output_recon, target, predicted_keypoints,
                         discriminator, criterionGAN):
     """Sub-routine for applying adversarial loss within the main train loop
-    Adapted from https://github.com/NVIDIA/pix2pixHD/blob/master/models/pix2pixHD_model.py, which in turn was adpated from 
+    Adapted from https://github.com/NVIDIA/pix2pixHD/blob/master/models/pix2pixHD_model.py, which in turn was adpated from
     https://github.com/junyanz/pytorch-CycleGAN-and-pix2pix/blob/master/models/pix2pix_model.py
     Args:
         output_recon (torch.tensor): reconstruction from decoder.
@@ -180,8 +182,15 @@ def apply_GAN_criterion(output_recon, target, predicted_keypoints,
 
     return loss_G_GAN, loss_D_real, loss_D_fake
 
-
+@hydra.main(config_path='conf/config.yaml')
 def main(config):
+    print(config)
+    OmegaConf.set_struct(config, False) # so we can add fields for rank
+    config['rank'] = 0  # default value
+    if config['use_DDP']:
+        config['world_size'] = int(os.environ['WORLD_SIZE'])
+        config['rank'] = int(os.environ['RANK'])
+        config['local_rank'] = int(os.environ['LOCAL_RANK'])
     save_path = config['save_path']
     epochs = config['epochs']
     os.environ['TORCH_HOME'] = config['torch_home']
@@ -370,10 +379,5 @@ def main(config):
 
         # end of epoch loop
 
-if __name__ == '__main__':
-    parser = argparse.ArgumentParser(description='')
-    parser.add_argument('--config', type=str, help="Path to config file for current experiment")
-    #  defaults.yaml stores list of all options with their default values
-    #  do not edit that file unless you're adding additional options or wish to change defaults.
-    config = parse_all_args(parser, 'configs/defaults.yaml')
-    main(config)
+if __name__ == "__main__":
+    main()

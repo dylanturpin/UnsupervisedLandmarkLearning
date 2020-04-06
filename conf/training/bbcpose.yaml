@@ -3,8 +3,7 @@ batch_size: 16
 n_landmarks: 30
 color_jitter: True
 dataset: bbc_pose
-dataset_path: '' # specify this one
-epochs: 2000
+dataset_path: '/h/dturpin/datasets/bbcpose' # specify this one
 fixed_covar: 0.008
 flip_probability: 0.0
 img_size: 128
@@ -27,7 +26,7 @@ resume_ckpt_opt_G:  # optimizer checkpoint for main model
 resume_ckpt_opt_D:  # optimizer checkpoint for discriminator
 rot_lb: -0.39269908169872414
 rot_ub: 0.39269908169872414
-save_path: ''
+save_path: 'checkpoints'
 scale_lb: 1.05
 scale_ub: 1.15
 torch_home: '' # set this to where you want your vgg weights to be saved
@@ -35,10 +34,20 @@ trans_lb: -10
 trans_ub: 10
 use_gan: False
 use_identity_covariance: False
-fixed_covar: 0.008
 use_vgg: True
 use_temporal: True
 val_frac: 0.01
 val_freq: 2
 vgg_lambda: 5.0
 use_DDP: False
+
+
+disable_spade: False
+weight_decay: 0.000005
+local_rank: 0
+save_freq: 1 # checkpoint frequency during training by eoch
+color_jitter_targets: False # apply color jittering on the targets first
+fixed_covar: 0.05 # covar diagonal value if use_identity_covariance
+use_warped: False # warping augmentating during training
+use_fg_bg_mask: True # use foreground-background separation masks
+low_res_mask: False # use quarter resolution for separation mask (necessary for KTH or any grayscale image dataset)
