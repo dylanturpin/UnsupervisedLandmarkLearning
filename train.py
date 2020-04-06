@@ -1,5 +1,6 @@
 """Main training script. Currently only supports the BBCPose dataset
 """
+import wandb
 from apex.parallel import DistributedDataParallel as DDP
 from utils.visualizer import dump_image, project_heatmaps_colorized
 from models.losses import Vgg19PerceptualLoss, GANLoss
@@ -185,6 +186,7 @@ def apply_GAN_criterion(output_recon, target, predicted_keypoints,
 @hydra.main(config_path='conf/config.yaml')
 def main(config):
     print(config)
+    wandb.init(project="unsupervisedlandmarklearning", sync_tensorboard=True)
     OmegaConf.set_struct(config, False) # so we can add fields for rank
     config['rank'] = 0  # default value
     if config['use_DDP']:
