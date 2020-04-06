@@ -1,3 +1,6 @@
 FROM nvcr.io/nvidia/pytorch:19.05-py3
 RUN apt-get update --fix-missing
 RUN apt-get install -y software-properties-common libgl1-mesa-glx ffmpeg libstdc++6
+RUN add-apt-repository ppa:ubuntu-toolchain-r/test
+RUN apt-get update
+RUN apt-get upgrade -y libstdc++6
