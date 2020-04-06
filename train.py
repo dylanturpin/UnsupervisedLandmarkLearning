@@ -17,6 +17,7 @@ import numpy as np
 import torch.nn.functional
 import torch.nn as nn
 import hydra
+from hydra import slurm_utils
 from omegaconf import OmegaConf
 import os
 import argparse
@@ -185,7 +186,8 @@ def apply_GAN_criterion(output_recon, target, predicted_keypoints,
 
 @hydra.main(config_path='conf/config.yaml')
 def main(config):
-    print(config)
+    slurm_utils.symlink_hydra(config, os.getcwd())
+    print(config.pretty())
     wandb.init(project="unsupervisedlandmarklearning", sync_tensorboard=True)
     OmegaConf.set_struct(config, False) # so we can add fields for rank
     config['rank'] = 0  # default value
