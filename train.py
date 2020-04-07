@@ -7,6 +7,7 @@ from models.losses import Vgg19PerceptualLoss, GANLoss
 from torch.utils.data import DataLoader
 from tensorboardX import SummaryWriter
 from dataloaders.bbc_pose_dataset import BBCPoseDataset
+from dataloaders.pretrain_dataset import PretrainDataset
 from torch import optim
 from models.discriminator import MultiscaleDiscriminator
 from utils.utils import initialize_distributed, parse_all_args,\
@@ -47,6 +48,9 @@ def setup_dataloaders(config):
     if config['dataset'] == 'bbc_pose':
         train_dataset = BBCPoseDataset(config, 'train')
         val_dataset = BBCPoseDataset(config, 'validation')
+    elif config['dataset'] == 'pretrain':
+        train_dataset = PretrainDataset(config, 'train')
+        val_dataset = PretrainDataset(config, 'validation')
     else:
         print("No such dataset!")
         exit(-1)
@@ -188,7 +192,7 @@ def apply_GAN_criterion(output_recon, target, predicted_keypoints,
 def main(config):
     slurm_utils.symlink_hydra(config, os.getcwd())
     print(config.pretty())
-    wandb.init(project="unsupervisedlandmarklearning", sync_tensorboard=True)
+    wandb.init(project="unsupervisedlandmarklearning", sync_tensorboard=True, config=config)
     OmegaConf.set_struct(config, False) # so we can add fields for rank
     config['rank'] = 0  # default value
     if config['use_DDP']:

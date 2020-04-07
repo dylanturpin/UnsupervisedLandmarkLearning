@@ -179,7 +179,7 @@ class BBCPoseLandmarkEvalDataset(Dataset):
 
             bbox = (bbox_x_min, bbox_y_min, bbox_x_max, bbox_y_max)
             img = img.crop(bbox)
-            
+
             bbox_w = bbox_x_max - bbox_x_min
             bbox_h = bbox_y_max - bbox_y_min
             # center coordinate space

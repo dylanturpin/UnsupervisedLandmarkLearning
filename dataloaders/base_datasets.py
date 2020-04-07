@@ -13,14 +13,14 @@ class BaseVideoDataset(Dataset):
     """
     Base dataset class for all video-type datasets in landmark learning
     """
-    def __init__(self, args, partition, inference_mode=False):
+    def __init__(self, config, partition, inference_mode=False):
         super(BaseVideoDataset, self).__init__()
-        self.dataset_path = args['dataset_path']
-        self.flip_probability = args['flip_probability']
-        self.img_size = args['img_size']
+        self.dataset_path = config['dataset_path']
+        self.flip_probability = config['flip_probability']
+        self.img_size = config['img_size']
         self.inference_mode = inference_mode
 
-        self.num_frames_array = self.setup_frame_array(args, partition)
+        self.num_frames_array = self.setup_frame_array(config, partition)
         assert(self.num_frames_array[0] == 0)
 
         # video frame folders
@@ -29,15 +29,15 @@ class BaseVideoDataset(Dataset):
         self.paired_color_jitter = PairedColorJitter(0.4, 0.4, 0.4, 0.3)
         self.color_jitter = transforms.ColorJitter(0.4, 0.4, 0.4, 0.3)
         self.TPSWarp = TPSWarp([self.img_size, self.img_size], 10, 10, 10,
-                               rot_range=[args['rot_lb'], args['rot_ub']],
-                               trans_range=[args['trans_lb'], args['trans_ub']],
-                               scale_range=[args['scale_lb'], args['scale_ub']],
+                               rot_range=[config['rot_lb'], config['rot_ub']],
+                               trans_range=[config['trans_lb'], config['trans_ub']],
+                               scale_range=[config['scale_lb'], config['scale_ub']],
                                append_offset_channels=True)
 
         self.normalize = transforms.Normalize((0.5, 0.5, 0.5),
                                               (0.5, 0.5, 0.5))
 
-    def setup_frame_array(self, args):
+    def setup_frame_array(self, config):
         """
         Implement this function to setup the cummulative array
         cummulative array should have N+1 bins, where N is the number of videos

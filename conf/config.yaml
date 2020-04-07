@@ -1,6 +1,6 @@
 defaults:
   - hydra/launcher: slurm
-  - training: bbcpose
+  - training: pretrain
 
 slurm:
   gres: gpu:1
@@ -16,5 +16,5 @@ slurm:
 singularity:
   bin_path: '/h/dturpin/pkgs/bin/singularity'
   sbox_path: '/h/dturpin/img/UnsupervisedLandmarkLearning_sbox'
-  
+
 exec_path: '/h/dturpin/repos/UnsupervisedLandmarkLearning/train.py'
