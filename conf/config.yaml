@@ -2,10 +2,14 @@ defaults:
   - hydra/launcher: slurm
   - training: pretrain
 
+
+slurm_additional:
+  wandb_dir: '/root/checkpoint'
+
 slurm:
   gres: gpu:1
   job_name:
-    - example
+    - unsup-ntools-${n_train_vids}-fgbg-${use_fg_bg_mask}-gan-${use_gan}
   partition: gpu
   cpus_per_task: 4
   ntasks_per_node: 1
@@ -16,5 +20,7 @@ slurm:
 singularity:
   bin_path: '/h/dturpin/pkgs/bin/singularity'
   sbox_path: '/h/dturpin/img/UnsupervisedLandmarkLearning_sbox'
+  binds:
+    - '/checkpoint/dturpin/$SLURM_JOB_ID:/root/checkpoint'
 
 exec_path: '/h/dturpin/repos/UnsupervisedLandmarkLearning/train.py'

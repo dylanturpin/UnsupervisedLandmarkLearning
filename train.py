@@ -192,19 +192,26 @@ def apply_GAN_criterion(output_recon, target, predicted_keypoints,
 def main(config):
     slurm_utils.symlink_hydra(config, os.getcwd())
     print(config.pretty())
-    wandb.init(project="unsupervisedlandmarklearning", sync_tensorboard=True, config=config)
+    wandb.init(project="unsupervisedlandmarklearning", sync_tensorboard=True, config=config, resume=True)
+
+    # load checkpoint if resuming
     OmegaConf.set_struct(config, False) # so we can add fields for rank
+    save_path = config['save_path']
+    if wandb.run.resumed:
+        print(f'resuming! at step: {wandb.run.step}')
+        config['resume_ckpt'] = os.path.join(save_path, 'latest_checkpoint.ckpt')
+        config['resume_ckpt_D'] = os.path.join(save_path, 'latest_checkpoint_D.ckpt')
+        config['resume_ckpt_opt_D'] = os.path.join(save_path, 'latest_optimizer_d_state.ckpt')
+        config['resume_ckpt_opt_G'] = os.path.join(save_path, 'latest_optimizer_g_state.ckpt')
+
     config['rank'] = 0  # default value
     if config['use_DDP']:
         config['world_size'] = int(os.environ['WORLD_SIZE'])
         config['rank'] = int(os.environ['RANK'])
         config['local_rank'] = int(os.environ['LOCAL_RANK'])
-    save_path = config['save_path']
     epochs = config['epochs']
     os.environ['TORCH_HOME'] = config['torch_home']
     distributed =  config['use_DDP']
-    start_ep = 0
-    start_cnt = 0
 
     # initialize model
     print("Initializing model...")
@@ -286,6 +293,11 @@ def main(config):
         log_handle = open(log_name, 'a')
 
     print("Starting training")
+    start_ep = 0
+    start_cnt = 0
+    if wandb.run.resumed:
+        start_cnt = wandb.run.step
+        start_ep = wandb.run.step // len(train_dataloader)
     cnt = start_cnt
     assert(config['use_warped'] or config['use_temporal'])
 
@@ -376,11 +388,17 @@ def main(config):
                 fname = os.path.join(save_path, fname)
                 print("Saving model...")
                 save_weights(model, fname, distributed)
+                wandb.save(fname)
+                fname = os.path.join(save_path, 'latest_checkpoint.ckpt')
+                save_weights(model, fname, distributed)
                 optimizer_g_fname = os.path.join(save_path, 'latest_optimizer_g_state.ckpt')
                 torch.save(optimizer_G.state_dict(), optimizer_g_fname)
                 if config['use_gan']:
                     fname = 'checkpoint_D_%d.ckpt' % (ep)
                     fname = os.path.join(save_path, fname)
+                    save_weights(discriminator, fname, distributed)
+                    wandb.save(fname)
+                    fname = os.path.join(save_path, 'latest_checkpoint_D.ckpt')
                     save_weights(discriminator, fname, distributed)
                     optimizer_d_fname = os.path.join(save_path, 'latest_optimizer_d_state.ckpt')
                     torch.save(optimizer_D.state_dict(), optimizer_d_fname)
